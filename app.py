@@ -2,6 +2,7 @@ import os, copy
 from flask import Flask, jsonify, request
 from flask_migrate import Migrate
 from models import db, Tag, Page
+from flask_cors import CORS
 
 app = Flask(__name__)
 ##Setting the place for the db to run
@@ -11,6 +12,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 #migration engine
 migrate = Migrate(app, db)
+# More code
+CORS(app)
 
 # Get a list of all the Contacts GET /contact/all
 @app.route('/')
@@ -26,18 +29,183 @@ def hello():
         
     return jsonify(responseA, responseB)
 
-# Create a new Contact POST /contact
+'''
+# Contact
+    id: (int, primary_key)
+    full_name: (string, mandatory)
+    email: (string, mandatory)
+    address: (string, optional)
+    phone: (string, optional)
+    groups: (list of foreign_key)
 
-
-# Get a specific Contact (with the Group objects it belongs to) GET /contact/{contact_id}
-# Delete a Contact DELETE /contact/{contact_id}
-# Update a Contact UPDATE /contact/{contact_id}
-# Get a list of all the Group names and ids GET /group/all
-# Get a specific Group (with all Contact objects related to it) GET /group/{group_id}
-# Update a Group name UPDATE /group/{group_id}
-# Delete a Group DELETE /group/{group_id}
+# Group
+    id: (int, primary_key)
+    name: (string, mandatory)
+    contacts: (list of foreign_key)
+Formal API Documentation
+'''
 
 '''
+#GET /contact/all
+ 
+REQUEST (application/json)
+    type: GET
+    body: null
+RESPONSE (application/json)
+        code: 200 | 404 | 500
+        body: [
+            {
+                "full_name": "Dave Bradley",
+                "email": "dave@gmail.com",
+                "address":"47568 NW 34ST, 33434 FL, USA",
+                "phone":"7864445566",
+                "groups": [2,3]
+            },
+            ...
+        ]
+# Create a new contact
+    REQUEST (application/json)
+        type: POST
+        path: /contact
+        body: {
+            "full_name": "Dave Bradley",
+            "email": "dave@gmail.com",
+            "address":"47568 NW 34ST, 33434 FL, USA",
+            "phone":"7864445566",
+            "groups": [2,3]
+        }
+    RESPONSE (application/json)
+        code: 200 | 400 | 500
+        body: {
+            "id": 12
+            "full_name": "Dave Bradley",
+            "email": "dave@gmail.com",
+            "address":"47568 NW 34ST, 33434 FL, USA",
+            "phone":"7864445566",
+            "groups": [2,3]
+        }
+Get a specific Contact
+    REQUEST (application/json)
+        type: GET
+        path: /contact/{contact_id}
+    RESPONSE (application/json)
+        code: 200 | 404 | 400 | 500
+        body:{
+            "id": 12
+            "full_name": "Dave Bradley",
+            "email": "dave@gmail.com",
+            "address":"47568 NW 34ST, 33434 FL, USA",
+            "phone":"7864445566",
+            "groups": [
+                {
+                    "id": 2,
+                    "name": "Family"
+                },{
+                    "id": 3,
+                    "name": "Gamers"
+                }
+             ]
+        }
+Update a given contact
+    REQUEST (application/json)
+        type: PUT
+        path: /contact/{contact_id}
+        body: {
+            "full_name": "Dave Bradley",
+            "email": "dave@gmail.com",
+            "address":"47568 NW 34ST, 33434 FL, USA",
+            "phone":"7864445566",
+            "groups": [2,3]
+        }
+    RESPONSE (application/json)
+        code: 200 | 404 | 400 | 500
+        body:{
+            "id": 12
+            "full_name": "Dave Bradley",
+            "email": "dave@gmail.com",
+            "address":"47568 NW 34ST, 33434 FL, USA",
+            "phone":"7864445566",
+            "groups": [2,3]
+        }
+Delete a contact by id
+    REQUEST (application/json)
+        type: DELETE
+        path: /contact/{contact_id}
+        body: null
+    RESPONSE (application/json)
+        code: 200 | 404 | 500
+        body: {
+            "deleted": {
+                "id": 12,
+                "full_name": "Dave Bradley",
+            }
+        }
+List all Groups
+    REQUEST (application/json)
+        type: GET
+        path: /group/
+        body: null
+    RESPONSE (application/json)
+        code: 200 | 500
+        body: {
+            "data": [
+                {
+                    "id": 1,
+                    "name": "Work"
+                },{
+                    "id": 2,
+                    "name": "Gamers"
+                }
+            ]
+        }
+Get a specific Group
+    REQUEST (application/json)
+        type: GET
+        path: /group/{group_id}
+    RESPONSE (application/json)
+        code: 200 | 404 | 400 | 500
+        body:{
+            "id": 2
+            "name": "Work",
+            "contacts": [
+                {
+                    "id": 12
+                    "full_name": "Dave Bradley",
+                    "email": "dave@gmail.com",
+                    "address":"47568 NW 34ST, 33434 FL, USA",
+                    "phone":"7864445566",
+                    "groups": [2,3]
+                }
+             ]
+        }
+Update a given group's id
+    REQUEST (application/json)
+        type: PUT
+        path: /group/{group_id}
+        body: {
+            "name": "Beach Crew",
+        }
+    RESPONSE (application/json)
+        code: 200 | 404 | 400 | 500
+        body:{
+            "id": 2
+            "name": "Beach Crew",
+        }
+Delete a group by id
+    REQUEST (application/json)
+        type: DELETE
+        path: /group/{group_id}
+        body: null
+    RESPONSE (application/json)
+        code: 200 | 404 | 500
+        body: {
+            "deleted": {
+                "id": 2,
+                "name": "Beach Crew",
+            }
+        }
+
+
 # Add a Course     - /courses/add  -  POST    
 @app.route('/courses/add', methods=['POST'])
 def addCourses():
